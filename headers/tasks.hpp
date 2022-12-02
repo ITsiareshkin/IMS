@@ -6,12 +6,14 @@ enum task_names
     FIRST_PART,
     SECOND_PART,
     DETECT_TARGET,
+    LAUNCH_ISK,
 };
 
 struct task
 {
     task_names task_name;
     float a_time;
+    int pid;
 };
 
 class tasks
