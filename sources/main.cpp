@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 using namespace std;
-
+int pid=1;
 int iskanders, s300, ended, iskander_amm, iskander_ready, tracked_targets, pvo_amm, pvo_ready;
-float dist_to_target, sim_time;
+float dist_to_target, sim_time, detect_time;
 tasks tasklist;
 
 void help()
@@ -19,19 +19,33 @@ void help()
 
 void execute(task todo_task)
 {
+    tasklist.pop();
     switch(todo_task.task_name) {
+        
+        case RELOAD_ISK:
+            iskander_ready++;
+            if (iskander_amm != 0 and iskander_ready != 0) tasklist.push({LAUNCH_ISK, sim_time, ++pid});
+            break;
+
+        case LAUNCH_ISK:
+            iskander_amm--;
+            iskander_ready--;
+            tasklist.push({RELOAD_ISK, sim_time+60, todo_task.pid});
+            tasklist.push({FIRST_PART, sim_time+(dist_to_target-5)/2.1, todo_task.pid});
+            tasklist.push({DETECT_TARGET, sim_time+detect_time, todo_task.pid});
+            cout << "Time: "<< sim_time << ". Launced iskander. Left: "<< iskander_amm <<"\n";
+            break;
+        
         case FIRST_PART:
             cout << "Time: "<< sim_time << ". Missile near the target.\n";
-            tasklist.push({SECOND_PART, sim_time + 5/2.6});
+            tasklist.push({SECOND_PART, sim_time + 5/2.6, todo_task.pid});
             break;
+        
         case SECOND_PART:
             cout << "Time: "<< sim_time << ". The missile hit the target.\n";
             ended--;
             break;
-        case RELOAD_ISK:
-            cout << "Time: "<< sim_time << ". Iskander reloaded.\n";
-            iskander_ready++;
-            break;
+        
         case DETECT_TARGET:
             cout << "Time: "<< sim_time << ". Target detected.\n";
             //TODO
@@ -129,17 +143,23 @@ int main(int argc, char *argv[])
     iskander_amm = ended;
     iskander_ready = iskanders;
     sim_time = 0;
+    
     task curr_task;
-    float detect_time;
     if (dist_to_target < 175)
         detect_time = 0;
     else
         detect_time = (dist_to_target - 175)/2.1;
+
+    for(pid; pid <= iskanders; pid++)
+    {
+        tasklist.push({LAUNCH_ISK, 0, pid});
+    }
+
     while (ended != 0)
     {
         if (!tasklist.empty())
         {
-            curr_task = tasklist.pop();
+            curr_task = tasklist.get();
             sim_time = curr_task.a_time;
             execute(curr_task);
             while(1)
@@ -150,21 +170,12 @@ int main(int argc, char *argv[])
                     if(curr_task.a_time == sim_time)
                     {
                         execute(curr_task);
-                        tasklist.pop();
                     }
                     else break;
                 }
                 else break;
             }
         }
-        while(iskander_amm != 0 and iskander_ready != 0)
-        {
-            iskander_amm--;
-            iskander_ready--;
-            tasklist.push({RELOAD_ISK, sim_time+60});
-            tasklist.push({FIRST_PART, sim_time+(dist_to_target-5)/2.1});
-            tasklist.push({DETECT_TARGET, sim_time+});
-            cout << "Time: "<< sim_time << ". Launced iskander."<< "Left: "<< iskander_amm <<"\n";
-        }
+        
     }   
 }
