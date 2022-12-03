@@ -13,7 +13,6 @@ enum task_names
     LAUNCH_ISK,
     LAUNCH_PVO,
     TARGET_POINT,
-    FREE_TARGET_S300,
     GET_READY_S300,
 };
 
