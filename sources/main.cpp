@@ -74,7 +74,7 @@ void execute(task todo_task)
                 tasklist.push({LAUNCH_PVO, sim_time + 1, todo_task.pid, lid});
                 s300_taketarget(lid);
             }
-            else tasklist.push({DETECT_TARGET, sim_time + 0.001, todo_task.pid, 0}); //FIX TIME TO READY
+            else tasklist.push({DETECT_TARGET, sim_time + float(0.001), todo_task.pid, 0}); //FIX TIME TO READY
             break;
         }
         case LAUNCH_PVO:
@@ -120,6 +120,10 @@ void execute(task todo_task)
         case GET_READY_S300:
         {
             s300_get_ready(todo_task.pid);
+            break;
+        }
+        case NONE:
+        {
             break;
         }
     }
@@ -228,7 +232,7 @@ int main(int argc, char *argv[])
         }
         syst[i].targets=6;
     }
-    for(pid; pid < iskanders+12; pid++)
+    for(; pid < iskanders+12; pid++)
     {
         tasklist.push({LAUNCH_ISK, 0, pid, -1});
     }
