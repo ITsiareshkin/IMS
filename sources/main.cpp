@@ -48,7 +48,7 @@ void execute(task todo_task)
             tasklist.push({RELOAD_ISK, sim_time+reloadtime, todo_task.pid, 0});
             tasklist.push({FIRST_PART, sim_time+(dist_to_target-5)/main_speed, todo_task.pid, 0});
             tasklist.push({DETECT_TARGET, sim_time+detect_time, todo_task.pid, 0});
-            cout << "Time: "<< sim_time << ". Launced iskander. Left: "<< iskander_amm <<"\n";
+            cout << "Time: "<< sim_time << ". Launched iskander. Left: "<< iskander_amm <<"\n";
             break;
         }
         case FIRST_PART:
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
     cout << "------------------------------------------------------------\n"
 		 << "                 RESAULTS OF SIMULATION\n"
 		 << "------------------------------------------------------------\n"
-		 << "Target hit: " << target_hits << "\n"
+		 << "Target hits: " << target_hits << "\n"
 		 << "Downed missles: " << downed_missiles << "\n"
 		 << "------------------------------------------------------------\n"
 		<< endl;
