@@ -15,7 +15,9 @@ s300 syst[4];
 int target_hits=0;
 int downed_missiles=0;
 int missed=0;
-
+const float main_speed=2.1;
+const float max_speed=2.6;
+const float s300_speed=2.0;
 
 
 
@@ -42,17 +44,18 @@ void execute(task todo_task)
         {
             iskander_amm--;
             iskander_ready--;
-            tasklist.push({RELOAD_ISK, sim_time+60, todo_task.pid, 0});
-            tasklist.push({FIRST_PART, sim_time+(dist_to_target-5)/2.1, todo_task.pid, 0});
+            float reloadtime = float(rand() % 150)/10.0+45;
+            tasklist.push({RELOAD_ISK, sim_time+reloadtime, todo_task.pid, 0});
+            tasklist.push({FIRST_PART, sim_time+(dist_to_target-5)/main_speed, todo_task.pid, 0});
             tasklist.push({DETECT_TARGET, sim_time+detect_time, todo_task.pid, 0});
-            cout << "Time: "<< sim_time << ". Launched iskander. Left: "<< iskander_amm <<"\n";
+            cout << "Time: "<< sim_time << ". Launced iskander. Left: "<< iskander_amm <<"\n";
             break;
         }
         case FIRST_PART:
         {
             cout << "Time: "<< sim_time << ". Missile near the target.\n";
             tasklist.remove(todo_task.pid, LAUNCH_PVO);
-            tasklist.push({SECOND_PART, sim_time + 5/2.6, todo_task.pid, 0});
+            tasklist.push({SECOND_PART, sim_time + 5/max_speed, todo_task.pid, 0});
             break;
         }
         case SECOND_PART:
@@ -78,17 +81,17 @@ void execute(task todo_task)
         {
             cout << "Time: "<< sim_time << ". Air defense missle launched.\n";
             s300_launch(todo_task.l_id);
-            int reloadtime = rand() % 3 +3;
+            float reloadtime = float(rand() % 200)/100.0+3;
             tasklist.push({GET_READY_S300, sim_time+reloadtime, todo_task.l_id, 0});
             task first_part = tasklist.get(todo_task.pid, FIRST_PART);
-            float curr_dist = dist_to_target - (sim_time - first_part.a_time + (dist_to_target -5)/2.1)*2.1;
+            float curr_dist = dist_to_target - (sim_time - first_part.a_time + (dist_to_target -5)/main_speed)*main_speed;
             if (curr_dist <= 75)
             {
-                tasklist.push({TARGET_POINT, sim_time, todo_task.pid, todo_task.l_id});
+                tasklist.push({TARGET_POINT, sim_time + curr_dist/(main_speed+s300_speed), todo_task.pid, todo_task.l_id});
             }
             else
             {
-                tasklist.push({TARGET_POINT, sim_time+(curr_dist-75)/3.15, todo_task.pid, todo_task.l_id});
+                tasklist.push({TARGET_POINT, sim_time+(curr_dist-75)/(main_speed+s300_speed), todo_task.pid, todo_task.l_id});
             }
             break;
         }
@@ -182,7 +185,7 @@ int main(int argc, char *argv[])
 
                     if (dist_to_target <= 5)
                     {
-                        cerr << "Distance must be a float and > 5.\n";
+                        cerr << "Distance must be a float and 5 < dist <= 2000.\n";
                         return EXIT_FAILURE;
                     }
 
@@ -215,7 +218,7 @@ int main(int argc, char *argv[])
     sim_time = 0;
     task curr_task;
     if (dist_to_target < 175) detect_time = 0;
-    else detect_time = (dist_to_target - 175)/2.1;
+    else detect_time = (dist_to_target - 175)/main_speed;
     for(int i=0; i < s300_n; i++)
     {
         for(int j=0; j<3; j++)
@@ -244,7 +247,7 @@ int main(int argc, char *argv[])
     cout << "------------------------------------------------------------\n"
 		 << "                 RESAULTS OF SIMULATION\n"
 		 << "------------------------------------------------------------\n"
-		 << "Target hits: " << target_hits << "\n"
+		 << "Target hit: " << target_hits << "\n"
 		 << "Downed missles: " << downed_missiles << "\n"
 		 << "------------------------------------------------------------\n"
 		<< endl;
