@@ -142,7 +142,6 @@ int main(int argc, char *argv[])
 		{"distance", required_argument, nullptr, 'd'},
 		{nullptr, 0, nullptr, 0},
 	};
-
     while ((opt = getopt_long(argc, argv, sOpts, lOpts, nullptr)) != -1)
         {
             switch (opt)
@@ -204,6 +203,12 @@ int main(int argc, char *argv[])
 
         if (optind < argc)
         {
+            help();
+            return EXIT_FAILURE;
+        }
+        if (iskanders == 0 || dist_to_target == 0)
+        {
+            cerr << "Bad args.\n";
             help();
             return EXIT_FAILURE;
         }
