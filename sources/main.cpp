@@ -48,19 +48,19 @@ void execute(task todo_task)
             tasklist.push({RELOAD_ISK, sim_time+reloadtime, todo_task.pid, 0});
             tasklist.push({FIRST_PART, sim_time+(dist_to_target-5)/main_speed, todo_task.pid, 0});
             tasklist.push({DETECT_TARGET, sim_time+detect_time, todo_task.pid, 0});
-            cout << "Time: "<< sim_time << ". Launched iskander. Left: "<< iskander_amm <<"\n";
+            cout << "Time: "<< sim_time << ". Launched iskander. id="<< todo_task.pid <<". Left: "<< iskander_amm <<"\n";
             break;
         }
         case FIRST_PART:
         {
-            cout << "Time: "<< sim_time << ". Missile near the target.\n";
+            cout << "Time: "<< sim_time << ". Missile "<< todo_task.pid <<" near the target.\n";
             tasklist.remove(todo_task.pid, LAUNCH_PVO);
             tasklist.push({SECOND_PART, sim_time + 5/max_speed, todo_task.pid, 0});
             break;
         }
         case SECOND_PART:
         {
-            cout << "Time: "<< sim_time << ". The missile hit the target.\n";
+            cout << "Time: "<< sim_time << ". The missile "<< todo_task.pid <<" hit the target.\n";
             ended--;
             tasklist.remove(todo_task.pid, DETECT_TARGET);
             target_hits++;
@@ -79,12 +79,13 @@ void execute(task todo_task)
         }
         case LAUNCH_PVO:
         {
-            cout << "Time: "<< sim_time << ". Air defense missle launched.\n";
+            cout << "Time: "<< sim_time << ". Air defense missle launched for target id="<< todo_task.pid<<endl;
             s300_launch(todo_task.l_id);
             float reloadtime = float(rand() % 200)/100.0+3;
             tasklist.push({GET_READY_S300, sim_time+reloadtime, todo_task.l_id, 0});
-            task first_part = tasklist.get(todo_task.pid, FIRST_PART);
-            float curr_dist = dist_to_target - (sim_time - first_part.a_time + (dist_to_target -5)/main_speed)*main_speed;
+            task part = tasklist.get(todo_task.pid, FIRST_PART);
+            if (part.task_name == NONE) part = tasklist.get(todo_task.pid, SECOND_PART);
+            float curr_dist = dist_to_target - (sim_time - part.a_time + (dist_to_target -5)/main_speed)*main_speed;
             if (curr_dist <= 75)
             {
                 tasklist.push({TARGET_POINT, sim_time + curr_dist/(main_speed+s300_speed), todo_task.pid, todo_task.l_id});
@@ -104,16 +105,16 @@ void execute(task todo_task)
                 if (rand_n <= 85)
                 {
                     tasklist.remove(todo_task.pid, FIRST_PART);
-                    cout << "Time: "<< sim_time << ". Air defense hit the target.\n";
+                    cout << "Time: "<< sim_time << ". Air defense hit the target "<< todo_task.pid <<".\n";
                     downed_missiles++;
                 }
                 else 
                 {
-                    cout << "Time: "<< sim_time << ". Air defense missile failed to hit the target.\n";
+                    cout << "Time: "<< sim_time << ". Air defense missile failed to hit the target "<< todo_task.pid <<".\n";
                     missed++;
                 }
             }
-            else cout << "Time: "<< sim_time << ". Air defense missile self-destructed.\n";
+            else cout << "Time: "<< sim_time << ". Air defense missile launcheed for target "<< todo_task.pid <<" self-destructed.\n"<< todo_task.pid <<endl;
             s300_freetarget(todo_task.l_id);
             break;
         }
